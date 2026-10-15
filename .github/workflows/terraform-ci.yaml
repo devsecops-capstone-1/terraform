@@ -1,19 +1,28 @@
-name: Terraform CI
+name: Terraform Deploy
 
 on:
-  pull_request:
-    branches:
-      - main
-
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: terraform-production
+  cancel-in-progress: false
+
 jobs:
-  terraform:
-    uses: devsecops-capstone-1/ci-platform/.github/workflows/terraform-ci.yml@v3
+  deploy:
+    uses: devsecops-capstone-1/ci-platform/.github/workflows/terraform-deploy.yml@v1.1.0
     with:
       working_directory: "."
       terraform_version: "1.14.8"
-      checkov_enabled: true
+      tfstate_storage_account: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+      tfstate_container: ${{ vars.TFSTATE_CONTAINER }}
+      tfstate_key: ${{ vars.TFSTATE_KEY }}
+    secrets:
+      AZURE_TERRAFORM_PLAN_CLIENT_ID: ${{ secrets.AZURE_TERRAFORM_PLAN_CLIENT_ID }}
+      AZURE_TERRAFORM_APPLY_CLIENT_ID: ${{ secrets.AZURE_TERRAFORM_APPLY_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
