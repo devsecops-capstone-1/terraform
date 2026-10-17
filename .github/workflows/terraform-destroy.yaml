@@ -17,7 +17,7 @@ permissions:
 jobs:
   destroy:
     if: github.ref == 'refs/heads/main' && inputs.confirm == 'destroy'
-    uses: devsecops-capstone-1/ci-platform/.github/workflows/terraform-destroy.yaml@v1.1.1
+    uses: devsecops-capstone-1/ci-platform/.github/workflows/terraform-destroy.yaml@v2.0.0
     with:
       working_dir: .
       tfstate_container: ${{ vars.TFSTATE_CONTAINER }}
