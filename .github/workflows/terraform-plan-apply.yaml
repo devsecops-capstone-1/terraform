@@ -1,0 +1,47 @@
+# terraform/.github/workflows/terraform-plan-apply.yml
+name: Terraform Plan & Apply
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - "**.tf"
+      - "**.tfvars"
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  # Runs on every PR open/update — NOT when the PR closes
+  plan:
+    if: github.event.action != 'closed'
+    uses: devsecops-capstone-1/ci-platform/.github/workflows/terraform-plan.yaml@v2.0.1
+    with:
+      working_dir: .
+      pr_number: ${{ github.event.pull_request.number }}
+      tfstate_container: ${{ vars.TFSTATE_CONTAINER }}
+      tfstate_key: ${{ vars.TFSTATE_KEY }}
+      tfstate_storage_account: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+    secrets:
+      azure_client_id: ${{ secrets.AZURE_TERRAFORM_PLAN_CLIENT_ID }}
+      azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+      azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+  # Runs ONLY when the PR closes AND was actually merged (not just closed/abandoned)
+  apply:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    uses: devsecops-capstone-1/ci-platform/.github/workflows/terraform-apply.yaml@v2.0.0
+    with:
+      working_dir: .
+      head_sha: ${{ github.event.pull_request.head.sha }}
+      pr_number: ${{ github.event.pull_request.number }}
+      tfstate_container: ${{ vars.TFSTATE_CONTAINER }}
+      tfstate_key: ${{ vars.TFSTATE_KEY }}
+      tfstate_storage_account: ${{ vars.TFSTATE_STORAGE_ACCOUNT }}
+    secrets:
+      azure_client_id: ${{ secrets.AZURE_TERRAFORM_APPLY_CLIENT_ID }}
+      azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+      azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
